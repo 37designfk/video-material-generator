@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 
-    # PostgreSQL
-    database_url: str = "postgresql://user:pass@localhost:5432/video_material"
+    # Database (SQLite for local dev, PostgreSQL for production)
+    database_url: str = "sqlite:///./storage/video_material.db"
 
     # Claude API
     anthropic_api_key: str = ""

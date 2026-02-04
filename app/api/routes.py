@@ -329,6 +329,15 @@ async def list_jobs(limit: int = 100, offset: int = 0) -> JobListResponse:
                 progress=job.progress,
                 created_at=job.created_at,
                 filename=job.filename,
+                steps=ProcessingSteps(
+                    extract_audio=_convert_step_status(job.step_extract_audio),
+                    extract_frames=_convert_step_status(job.step_extract_frames),
+                    transcribe=_convert_step_status(job.step_transcribe),
+                    ocr=_convert_step_status(job.step_ocr),
+                    integrate=_convert_step_status(job.step_integrate),
+                    summarize=_convert_step_status(job.step_summarize),
+                    generate_html=_convert_step_status(job.step_generate_html),
+                ),
             )
             for job in jobs
         ],

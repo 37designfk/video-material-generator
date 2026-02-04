@@ -1,10 +1,13 @@
 """FastAPI application entry point."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router as api_router
 from app.config import get_settings
@@ -65,6 +68,17 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(api_router, prefix="/api", tags=["api"])
+
+# Mount static files for UI
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    """Redirect root to UI."""
+    return RedirectResponse(url="/static/index.html")
 
 
 if __name__ == "__main__":

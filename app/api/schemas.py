@@ -84,6 +84,7 @@ class JobListItem(BaseModel):
     progress: int
     created_at: datetime
     filename: Optional[str] = None
+    steps: Optional[ProcessingSteps] = None
 
 
 class JobListResponse(BaseModel):

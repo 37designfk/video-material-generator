@@ -43,6 +43,7 @@ storage/input/*
 storage/output/*
 storage/processing/*
 storage/models/*
+storage/*.db
 !storage/*/.gitkeep
 
 # Logs

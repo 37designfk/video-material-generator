@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Material Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0a0a0c;
+            --bg-surface: #121215;
+            --bg-elevated: #1a1a1f;
+            --bg-hover: #222228;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-accent: rgba(255, 255, 255, 0.12);
+            --text-primary: #f0f0f2;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --text-muted: rgba(255, 255, 255, 0.35);
+            --accent-cyan: #00d4ff;
+            --accent-cyan-glow: rgba(0, 212, 255, 0.15);
+            --accent-magenta: #ff3d8a;
+            --accent-amber: #ffb800;
+            --accent-green: #00e676;
+            --gradient-hero: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-magenta) 100%);
+            --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 40px var(--accent-cyan-glow);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --transition-fast: 0.15s ease;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Outfit', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Cinematic background */
+        .bg-atmosphere {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-atmosphere::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(ellipse 80% 50% at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 61, 138, 0.06) 0%, transparent 50%);
+            animation: atmosphereShift 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes atmosphereShift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-5%, -5%) rotate(3deg); }
+        }
+
+        .bg-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent);
+        }
+
+        /* Layout */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(32px, 6vw, 48px);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            background: var(--gradient-hero);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Upload Zone */
+        .upload-section {
+            margin-bottom: 48px;
+            animation: fadeInUp 0.8s ease-out 0.1s both;
+        }
+
+        .upload-zone {
+            position: relative;
+            border: 2px dashed var(--border-accent);
+            border-radius: var(--radius-lg);
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+            background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-elevated) 100%);
+            overflow: hidden;
+        }
+
+        .upload-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-hero);
+            opacity: 0;
+            transition: opacity var(--transition-smooth);
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .upload-zone:hover::before {
+            opacity: 0.03;
+        }
+
+        .upload-zone.drag-over {
+            border-color: var(--accent-cyan);
+            background: var(--bg-elevated);
+            transform: scale(1.01);
+            box-shadow: var(--shadow-glow), inset 0 0 60px var(--accent-cyan-glow);
+        }
+
+        .upload-zone.drag-over::before {
+            opacity: 0.08;
+        }
+
+        .upload-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            background: var(--bg-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-smooth);
+        }
+
+        .upload-zone:hover .upload-icon {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 212, 255, 0.2);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(255, 61, 138, 0.2));
+        }
+
+        .upload-icon svg {
+            width: 32px;
+            height: 32px;
+            stroke: var(--accent-cyan);
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .upload-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .upload-formats {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .format-tag {
+            padding: 4px 12px;
+            background: var(--bg-hover);
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+        /* Progress overlay */
+        .upload-progress {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .upload-progress.active {
+            display: flex;
+        }
+
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 4;
+        }
+
+        .progress-ring .bg {
+            stroke: var(--bg-hover);
+        }
+
+        .progress-ring .progress {
+            stroke: var(--accent-cyan);
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: center;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .progress-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Jobs Section */
+        .jobs-section {
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 3px;
+            height: 18px;
+            background: var(--gradient-hero);
+            border-radius: 2px;
+        }
+
+        .refresh-btn {
+            padding: 8px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--border-accent);
+            color: var(--text-primary);
+        }
+
+        .refresh-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Job Cards */
+        .jobs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .job-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px 24px;
+            transition: all var(--transition-smooth);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .job-card:hover {
+            border-color: var(--border-accent);
+            background: var(--bg-elevated);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .job-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .job-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .job-filename {
+            font-weight: 500;
+            font-size: 15px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .job-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+        }
+
+        .job-status {
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            flex-shrink: 0;
+        }
+
+        .job-status.queued {
+            background: rgba(255, 184, 0, 0.15);
+            color: var(--accent-amber);
+        }
+
+        .job-status.processing {
+            background: rgba(0, 212, 255, 0.15);
+            color: var(--accent-cyan);
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .job-status.completed {
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--accent-green);
+        }
+
+        .job-status.failed {
+            background: rgba(255, 61, 138, 0.15);
+            color: var(--accent-magenta);
+        }
+
+        /* Progress Bar */
+        .job-progress {
+            margin-bottom: 16px;
+        }
+
+        .progress-bar-container {
+            height: 6px;
+            background: var(--bg-hover);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-hero);
+            border-radius: 3px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Processing Steps */
+        .processing-steps {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .step-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--bg-hover);
+            border-radius: 100px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .step-pill.completed {
+            color: var(--accent-green);
+        }
+
+        .step-pill.processing {
+            color: var(--accent-cyan);
+        }
+
+        .step-pill svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Job Actions */
+        .job-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-hero);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-accent);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-danger {
+            background: transparent;
+            border: 1px solid rgba(255, 61, 138, 0.3);
+            color: var(--accent-magenta);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 61, 138, 0.1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            stroke: var(--text-muted);
+            stroke-width: 1;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            padding: 16px 20px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: toastIn 0.3s ease-out;
+            max-width: 360px;
+        }
+
+        .toast.success {
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .toast.error {
+            border-left: 3px solid var(--accent-magenta);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .app-container {
+                padding: 24px 16px;
+            }
+
+            .upload-zone {
+                padding: 40px 24px;
+            }
+
+            .job-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .job-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-atmosphere">
+        <div class="bg-grid"></div>
+    </div>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="header-badge">
+                <span class="badge-dot"></span>
+                <span>システム稼働中</span>
+            </div>
+            <h1>Video Material Generator</h1>
+            <p>動画をアップロードするだけで、AI が自動で学習教材を生成します</p>
+        </header>
+
+        <section class="upload-section">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-content">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <div class="upload-title">動画をドロップ、またはクリックして選択</div>
+                    <div class="upload-subtitle">アップロード後、自動で処理が開始されます</div>
+                    <div class="upload-formats">
+                        <span class="format-tag">MP4</span>
+                        <span class="format-tag">MOV</span>
+                        <span class="format-tag">AVI</span>
+                        <span class="format-tag">MKV</span>
+                        <span class="format-tag">WEBM</span>
+                    </div>
+                </div>
+                <div class="upload-progress" id="uploadProgress">
+                    <svg class="progress-ring" viewBox="0 0 80 80">
+                        <circle class="bg" cx="40" cy="40" r="36"/>
+                        <circle class="progress" cx="40" cy="40" r="36"
+                            stroke-dasharray="226.2" stroke-dashoffset="226.2" id="progressCircle"/>
+                    </svg>
+                    <div class="progress-text" id="progressText">アップロード中... 0%</div>
+                </div>
+                <input type="file" class="upload-input" id="fileInput"
+                    accept=".mp4,.mov,.avi,.mkv,.webm">
+            </div>
+        </section>
+
+        <section class="jobs-section">
+            <div class="section-header">
+                <h2 class="section-title">処理ジョブ</h2>
+                <button class="refresh-btn" onclick="loadJobs()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6M1 20v-6h6"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                    更新
+                </button>
+            </div>
+            <div class="jobs-list" id="jobsList">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                        <line x1="7" y1="2" x2="7" y2="22"/>
+                        <line x1="17" y1="2" x2="17" y2="22"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <line x1="2" y1="7" x2="7" y2="7"/>
+                        <line x1="2" y1="17" x2="7" y2="17"/>
+                        <line x1="17" y1="17" x2="22" y2="17"/>
+                        <line x1="17" y1="7" x2="22" y2="7"/>
+                    </svg>
+                    <p>まだジョブがありません</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_BASE = '/api';
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressCircle = document.getElementById('progressCircle');
+        const progressText = document.getElementById('progressText');
+        const jobsList = document.getElementById('jobsList');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // Polling interval for job updates
+        let pollingInterval = null;
+
+        // Step labels in Japanese
+        const stepLabels = {
+            extract_audio: '音声抽出',
+            extract_frames: 'フレーム抽出',
+            transcribe: '文字起こし',
+            ocr: 'OCR処理',
+            integrate: '統合処理',
+            summarize: '要約生成',
+            generate_html: 'HTML生成'
+        };
+
+        // Status labels
+        const statusLabels = {
+            queued: '待機中',
+            processing: '処理中',
+            completed: '完了',
+            failed: 'エラー'
+        };
+
+        // Upload handling
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('drag-over');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                uploadFile(fileInput.files[0]);
+            }
+        });
+
+        async function uploadFile(file) {
+            const validExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
+            const ext = '.' + file.name.split('.').pop().toLowerCase();
+
+            if (!validExtensions.includes(ext)) {
+                showToast('対応していないファイル形式です', 'error');
+                return;
+            }
+
+            uploadProgress.classList.add('active');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        const circumference = 2 * Math.PI * 36;
+                        const offset = circumference - (percent / 100) * circumference;
+                        progressCircle.style.strokeDashoffset = offset;
+                        progressText.textContent = `アップロード中... ${percent}%`;
+                    }
+                });
+
+                xhr.onload = function() {
+                    uploadProgress.classList.remove('active');
+                    progressCircle.style.strokeDashoffset = 226.2;
+                    fileInput.value = '';
+
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        showToast('アップロード完了！処理を開始しました', 'success');
+                        loadJobs();
+                        startPolling();
+                    } else {
+                        showToast('アップロードに失敗しました', 'error');
+                    }
+                };
+
+                xhr.onerror = function() {
+                    uploadProgress.classList.remove('active');
+                    showToast('アップロードに失敗しました', 'error');
+                };
+
+                xhr.open('POST', `${API_BASE}/upload`);
+                xhr.send(formData);
+            } catch (error) {
+                uploadProgress.classList.remove('active');
+                showToast('エラーが発生しました', 'error');
+            }
+        }
+
+        async function loadJobs() {
+            try {
+                const response = await fetch(`${API_BASE}/jobs`);
+                const data = await response.json();
+
+                if (data.jobs && data.jobs.length > 0) {
+                    renderJobs(data.jobs);
+
+                    // Check if any jobs are still processing
+                    const hasActiveJobs = data.jobs.some(job =>
+                        job.status === 'queued' || job.status === 'processing'
+                    );
+
+                    if (hasActiveJobs && !pollingInterval) {
+                        startPolling();
+                    } else if (!hasActiveJobs && pollingInterval) {
+                        stopPolling();
+                    }
+                } else {
+                    jobsList.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                                <line x1="7" y1="2" x2="7" y2="22"/>
+                                <line x1="17" y1="2" x2="17" y2="22"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                            </svg>
+                            <p>まだジョブがありません</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load jobs:', error);
+            }
+        }
+
+        function renderJobs(jobs) {
+            jobsList.innerHTML = jobs.map(job => {
+                const statusClass = job.status;
+                const statusLabel = statusLabels[job.status] || job.status;
+                const progress = job.progress || 0;
+
+                let stepsHtml = '';
+                if (job.steps) {
+                    stepsHtml = Object.entries(job.steps).map(([step, status]) => {
+                        const label = stepLabels[step] || step;
+                        let icon = '';
+                        let stepClass = '';
+
+                        if (status === 'completed') {
+                            stepClass = 'completed';
+                            icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>`;
+                        } else if (status === 'processing') {
+                            stepClass = 'processing';
+                            icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                            </svg>`;
+                        } else {
+                            icon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                            </svg>`;
+                        }
+
+                        return `<span class="step-pill ${stepClass}">${icon}${label}</span>`;
+                    }).join('');
+                }
+
+                let actionsHtml = '';
+                if (job.status === 'completed') {
+                    actionsHtml = `
+                        <a href="${API_BASE}/jobs/${job.job_id}/download/html" class="btn btn-primary" download>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            教材をダウンロード
+                        </a>
+                        <button class="btn btn-danger" onclick="deleteJob('${job.job_id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            削除
+                        </button>
+                    `;
+                } else if (job.status === 'failed') {
+                    actionsHtml = `
+                        <button class="btn btn-danger" onclick="deleteJob('${job.job_id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            削除
+                        </button>
+                    `;
+                }
+
+                const createdAt = new Date(job.created_at).toLocaleString('ja-JP');
+
+                return `
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div class="job-info">
+                                <div class="job-filename">${job.filename || 'Unknown'}</div>
+                                <div class="job-meta">
+                                    <span>${createdAt}</span>
+                                    <span>ID: ${job.job_id.slice(0, 8)}...</span>
+                                </div>
+                            </div>
+                            <span class="job-status ${statusClass}">${statusLabel}</span>
+                        </div>
+                        ${(job.status === 'processing' || job.status === 'queued') ? `
+                            <div class="job-progress">
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: ${progress}%"></div>
+                                </div>
+                                <div class="processing-steps">${stepsHtml}</div>
+                            </div>
+                        ` : ''}
+                        ${actionsHtml ? `<div class="job-actions">${actionsHtml}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function deleteJob(jobId) {
+            if (!confirm('このジョブを削除しますか？')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/jobs/${jobId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('ジョブを削除しました', 'success');
+                    loadJobs();
+                } else {
+                    showToast('削除に失敗しました', 'error');
+                }
+            } catch (error) {
+                showToast('エラーが発生しました', 'error');
+            }
+        }
+
+        function startPolling() {
+            if (pollingInterval) return;
+            pollingInterval = setInterval(loadJobs, 3000);
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span class="toast-message">${message}</span>`;
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Initial load
+        loadJobs();
+    </script>
+</body>
+</html>

@@ -14,7 +14,7 @@ alembic==1.14.*
 
 # GPU Processing
 faster-whisper==1.1.*
-surya-ocr==0.8.*
+easyocr==1.7.*
 imagehash==4.3.*
 
 # Video Processing
@@ -25,7 +25,7 @@ anthropic==0.43.*
 
 # HTML Generation
 jinja2==3.1.*
-Pillow==11.*
+Pillow>=10.0.0
 
 # File Watching
 watchdog==6.*
