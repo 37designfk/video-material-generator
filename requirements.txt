@@ -1,0 +1,43 @@
+# FastAPI
+fastapi==0.115.*
+uvicorn[standard]==0.34.*
+python-multipart==0.0.*
+
+# Task Queue
+celery[redis]==5.4.*
+redis==5.2.*
+
+# Database
+sqlalchemy==2.0.*
+psycopg2-binary==2.9.*
+alembic==1.14.*
+
+# GPU Processing
+faster-whisper==1.1.*
+surya-ocr==0.8.*
+imagehash==4.3.*
+
+# Video Processing
+# ffmpeg is installed at system level
+
+# AI
+anthropic==0.43.*
+
+# HTML Generation
+jinja2==3.1.*
+Pillow==11.*
+
+# File Watching
+watchdog==6.*
+
+# Utilities
+python-dotenv==1.0.*
+structlog==24.*
+pydantic==2.10.*
+pydantic-settings==2.7.*
+
+# Testing
+pytest==8.*
+pytest-asyncio==0.24.*
+httpx==0.28.*
+

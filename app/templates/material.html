@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - 動画教材</title>
+    <style>
+        /* CSS Variables for theming */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --heading-color: #2c3e50;
+            --border-color: #e0e0e0;
+            --card-bg: #f8f9fa;
+            --accent-color: #3498db;
+            --accent-hover: #2980b9;
+            --summary-bg: #e8f4fd;
+            --ocr-bg: #fff3cd;
+            --transcript-bg: #f5f5f5;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a2e;
+                --text-color: #e0e0e0;
+                --heading-color: #82b1ff;
+                --border-color: #3a3a5a;
+                --card-bg: #252540;
+                --accent-color: #64b5f6;
+                --accent-hover: #42a5f5;
+                --summary-bg: #1e3a5f;
+                --ocr-bg: #3d3520;
+                --transcript-bg: #2a2a4a;
+                --shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+        }
+
+        /* Base styles */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
+            line-height: 1.8;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h1 {
+            color: var(--heading-color);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .metadata {
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        .metadata span {
+            margin: 0 0.5rem;
+        }
+
+        /* Overall summary */
+        .overall-summary {
+            background: var(--summary-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .overall-summary h2 {
+            color: var(--heading-color);
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 3rem;
+        }
+
+        .toc h2 {
+            color: var(--heading-color);
+            font-size: 1.2rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .toc-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc-list a {
+            color: var(--accent-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .toc-list a:hover {
+            background: var(--border-color);
+        }
+
+        .toc-timestamp {
+            font-family: monospace;
+            background: var(--border-color);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-right: 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Chapters */
+        .chapter {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chapter:last-child {
+            border-bottom: none;
+        }
+
+        .chapter-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chapter-number {
+            background: var(--accent-color);
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chapter-title {
+            color: var(--heading-color);
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .chapter-timestamp {
+            font-family: monospace;
+            color: var(--text-color);
+            opacity: 0.6;
+            margin-left: auto;
+            font-size: 0.9rem;
+        }
+
+        /* Frame image */
+        .frame-image {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Summary section */
+        .chapter-summary {
+            background: var(--summary-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .chapter-summary h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--heading-color);
+            font-size: 0.9rem;
+        }
+
+        .chapter-summary p {
+            margin: 0;
+        }
+
+        /* OCR text */
+        .ocr-section {
+            background: var(--ocr-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .ocr-section h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--heading-color);
+            font-size: 0.9rem;
+        }
+
+        .ocr-text {
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Transcript (collapsible) */
+        .transcript-section {
+            margin-top: 1rem;
+        }
+
+        .transcript-section summary {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            background: var(--transcript-bg);
+            border-radius: 8px;
+            font-weight: 500;
+            color: var(--heading-color);
+            list-style: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .transcript-section summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .transcript-section summary::before {
+            content: "▶";
+            margin-right: 0.75rem;
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+        }
+
+        .transcript-section[open] summary::before {
+            transform: rotate(90deg);
+        }
+
+        .transcript-content {
+            padding: 1rem 1.5rem;
+            background: var(--transcript-bg);
+            border-radius: 0 0 8px 8px;
+            margin-top: -8px;
+        }
+
+        .speech-segment {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .speech-segment:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .segment-time {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .segment-text {
+            margin: 0;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border-color);
+            text-align: center;
+            color: var(--text-color);
+            opacity: 0.6;
+            font-size: 0.85rem;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .toc {
+                page-break-after: always;
+            }
+
+            .chapter {
+                page-break-inside: avoid;
+            }
+
+            .transcript-section {
+                display: block !important;
+            }
+
+            .transcript-section[open] summary::before,
+            .transcript-section summary::before {
+                display: none;
+            }
+
+            .transcript-content {
+                display: block !important;
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+
+            .frame-image {
+                max-height: 400px;
+                object-fit: contain;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .chapter-header {
+                flex-wrap: wrap;
+            }
+
+            .chapter-timestamp {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ title }}</h1>
+            <div class="metadata">
+                <span>再生時間: {{ unified.metadata.duration | format_duration }}</span>
+                <span>|</span>
+                <span>チャプター数: {{ unified.chapters | length }}</span>
+                <span>|</span>
+                <span>文字数: {{ total_word_count | int }}</span>
+            </div>
+        </header>
+
+        {% if overall_summary %}
+        <section class="overall-summary">
+            <h2>概要</h2>
+            <p>{{ overall_summary }}</p>
+        </section>
+        {% endif %}
+
+        <nav class="toc">
+            <h2>目次</h2>
+            <ol class="toc-list">
+                {% for chapter in unified.chapters %}
+                <li>
+                    <a href="#chapter-{{ chapter.index }}">
+                        <span class="toc-timestamp">{{ chapter.timestamp_display }}</span>
+                        {% if chapter.summary %}
+                        {{ chapter.summary[:50] }}{% if chapter.summary | length > 50 %}...{% endif %}
+                        {% elif chapter.ocr_text %}
+                        {{ chapter.ocr_text.split('\n')[0][:50] }}{% if chapter.ocr_text.split('\n')[0] | length > 50 %}...{% endif %}
+                        {% else %}
+                        チャプター {{ chapter.index + 1 }}
+                        {% endif %}
+                    </a>
+                </li>
+                {% endfor %}
+            </ol>
+        </nav>
+
+        <main>
+            {% for chapter in unified.chapters %}
+            <article class="chapter" id="chapter-{{ chapter.index }}">
+                <div class="chapter-header">
+                    <div class="chapter-number">{{ chapter.index + 1 }}</div>
+                    <h3 class="chapter-title">
+                        {% if chapter.ocr_text %}
+                        {{ chapter.ocr_text.split('\n')[0][:30] }}{% if chapter.ocr_text.split('\n')[0] | length > 30 %}...{% endif %}
+                        {% else %}
+                        チャプター {{ chapter.index + 1 }}
+                        {% endif %}
+                    </h3>
+                    <span class="chapter-timestamp">{{ chapter.timestamp_display }}</span>
+                </div>
+
+                {% if chapter.frame_image_base64 %}
+                <img class="frame-image"
+                     src="{{ chapter.frame_image_base64 }}"
+                     alt="チャプター {{ chapter.index + 1 }} のスライド"
+                     loading="lazy">
+                {% endif %}
+
+                {% if chapter.summary %}
+                <div class="chapter-summary">
+                    <h4>要約</h4>
+                    <p>{{ chapter.summary }}</p>
+                </div>
+                {% endif %}
+
+                {% if chapter.ocr_text %}
+                <div class="ocr-section">
+                    <h4>画面テキスト</h4>
+                    <pre class="ocr-text">{{ chapter.ocr_text }}</pre>
+                </div>
+                {% endif %}
+
+                {% if chapter.speech_segments %}
+                <details class="transcript-section">
+                    <summary>書き起こしを表示 ({{ chapter.speech_segments | length }}セグメント)</summary>
+                    <div class="transcript-content">
+                        {% for segment in chapter.speech_segments %}
+                        <div class="speech-segment">
+                            <div class="segment-time">{{ segment.start | format_duration }} - {{ segment.end | format_duration }}</div>
+                            <p class="segment-text">{{ segment.text }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </main>
+
+        <footer>
+            <p>生成日時: {{ generated_at }}</p>
+            <p>Video Material Generator で自動生成</p>
+        </footer>
+    </div>
+</body>
+</html>
