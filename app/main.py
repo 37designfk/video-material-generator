@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router as api_router
 from app.config import get_settings
+from app.models.job import init_db
 from app.utils.logger import get_logger, setup_logging
 
 # Initialize logging
@@ -25,12 +26,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     settings = get_settings()
     settings.ensure_directories()
+
+    # Initialize database
+    try:
+        init_db()
+        logger.info("database_initialized")
+    except Exception as e:
+        logger.warning("database_init_failed", error=str(e))
+
     logger.info(
         "application_started",
         storage_base=str(settings.storage_base_path),
         api_port=settings.api_port,
     )
+
     yield
+
     # Shutdown
     logger.info("application_shutdown")
 
@@ -39,7 +50,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Video Material Generator API",
     description="Generate HTML learning materials from video content with AI-powered transcription and OCR.",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 

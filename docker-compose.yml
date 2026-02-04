@@ -1,0 +1,74 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - storage:/app/storage
+    depends_on:
+      - redis
+      - postgres
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://video_user:video_pass@postgres:5432/video_material
+      - STORAGE_BASE_PATH=/app/storage
+      - INPUT_DIR=/app/storage/input
+      - OUTPUT_DIR=/app/storage/output
+      - PROCESSING_DIR=/app/storage/processing
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - storage:/app/storage
+      - models:/app/models
+    depends_on:
+      - redis
+      - postgres
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://video_user:video_pass@postgres:5432/video_material
+      - STORAGE_BASE_PATH=/app/storage
+      - INPUT_DIR=/app/storage/input
+      - OUTPUT_DIR=/app/storage/output
+      - PROCESSING_DIR=/app/storage/processing
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: video_material
+      POSTGRES_USER: video_user
+      POSTGRES_PASSWORD: video_pass
+    restart: unless-stopped
+
+volumes:
+  storage:
+  models:
+  redis_data:
+  pgdata:
