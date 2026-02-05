@@ -33,6 +33,7 @@ watchdog==6.*
 # Utilities
 python-dotenv==1.0.*
 structlog==24.*
+requests==2.32.*
 pydantic==2.10.*
 pydantic-settings==2.7.*
 
