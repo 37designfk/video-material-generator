@@ -10,6 +10,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router as api_router
+from app.api.auth_routes import router as auth_router
 from app.config import get_settings
 from app.models.job import init_db
 from app.utils.logger import get_logger, setup_logging
@@ -68,6 +69,7 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(api_router, prefix="/api", tags=["api"])
+app.include_router(auth_router, prefix="/api", tags=["auth"])
 
 # Mount static files for UI
 static_dir = Path(__file__).parent / "static"
@@ -78,6 +80,9 @@ if static_dir.exists():
 @app.get("/", include_in_schema=False)
 async def root():
     """Redirect root to UI."""
+    settings = get_settings()
+    if settings.require_auth:
+        return RedirectResponse(url="/static/login.html")
     return RedirectResponse(url="/static/index.html")
 
 

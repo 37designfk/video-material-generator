@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 
 from app.api.schemas import (
@@ -21,7 +21,9 @@ from app.api.schemas import (
     StepStatus,
     UploadResponse,
 )
+from app.api.dependencies import get_current_user
 from app.config import get_settings
+from app.models.user import User
 from app.models.job import (
     JobStatus as DBJobStatus,
     StepStatus as DBStepStatus,
@@ -82,17 +84,20 @@ async def health_check() -> HealthResponse:
     description="Upload a video file for processing.",
     responses={
         400: {"model": ErrorResponse, "description": "Invalid file type"},
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
         500: {"model": ErrorResponse, "description": "Upload failed"},
     },
 )
 async def upload_video(
     file: Annotated[UploadFile, File(description="Video file to process")],
+    user: User | None = Depends(get_current_user),
 ) -> UploadResponse:
     """
     Upload a video file for processing.
 
     Args:
         file: The video file to upload.
+        user: Current authenticated user (optional based on settings).
 
     Returns:
         Job ID and initial status.
@@ -100,6 +105,14 @@ async def upload_video(
     Raises:
         HTTPException: If file type is invalid or upload fails.
     """
+    # Check auth if required
+    settings = get_settings()
+    if settings.require_auth and not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
+
     # Validate file extension
     if not file.filename:
         raise HTTPException(
@@ -307,18 +320,34 @@ async def download_html(job_id: str):
     response_model=JobListResponse,
     summary="List jobs",
     description="Get a list of all jobs.",
+    responses={
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
+    },
 )
-async def list_jobs(limit: int = 100, offset: int = 0) -> JobListResponse:
+async def list_jobs(
+    limit: int = 100,
+    offset: int = 0,
+    user: User | None = Depends(get_current_user),
+) -> JobListResponse:
     """
     List all processing jobs.
 
     Args:
         limit: Maximum number of jobs to return.
         offset: Number of jobs to skip.
+        user: Current authenticated user (optional based on settings).
 
     Returns:
         List of jobs with their status.
     """
+    # Check auth if required
+    settings = get_settings()
+    if settings.require_auth and not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
+
     jobs = db_list_jobs(limit=limit, offset=offset)
 
     return JobListResponse(
@@ -351,19 +380,32 @@ async def list_jobs(limit: int = 100, offset: int = 0) -> JobListResponse:
     summary="Delete job",
     description="Delete a job and its files.",
     responses={
+        401: {"model": ErrorResponse, "description": "Not authenticated"},
         404: {"model": ErrorResponse, "description": "Job not found"},
     },
 )
-async def delete_job(job_id: str) -> None:
+async def delete_job(
+    job_id: str,
+    user: User | None = Depends(get_current_user),
+) -> None:
     """
     Delete a job and all associated files.
 
     Args:
         job_id: The job identifier.
+        user: Current authenticated user (optional based on settings).
 
     Raises:
         HTTPException: If job is not found.
     """
+    # Check auth if required
+    settings = get_settings()
+    if settings.require_auth and not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
+
     job = get_job(job_id)
 
     if not job:

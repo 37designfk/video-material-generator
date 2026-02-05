@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     phash_threshold: int = 5
     max_concurrent_jobs: int = 2
 
+    # Authentication
+    jwt_secret_key: str = "CHANGE_ME_IN_PRODUCTION_use_secrets_token_urlsafe_32"
+    require_auth: bool = True
+
     def ensure_directories(self) -> None:
         """Create necessary directories if they don't exist."""
         for dir_path in [
